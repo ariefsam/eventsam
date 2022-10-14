@@ -1,0 +1,2 @@
+# eventsam
+Simple Event Sourcing
