@@ -2,6 +2,7 @@ package eventsam_test
 
 import (
 	"eventsam"
+	"eventsam/idgenerator"
 	"log"
 	"os"
 	"testing"
@@ -36,10 +37,34 @@ func TestNewEventsam(t *testing.T) {
 		return
 	}
 	purchased := struct {
-		SKU string `json:"sku"`
+		SKU          string  `json:"sku"`
+		PricePerItem float64 `json:"price_per_item"`
+		Quantity     int     `json:"quantity"`
+		PurchaseID   string  `json:"purchase_id"`
 	}{
-		SKU: "sku001",
+		SKU:          "sku001",
+		PricePerItem: 500.0,
+		Quantity:     20,
+		PurchaseID:   idgenerator.Generate(),
 	}
-	err = esam.Store("a001", "item", "item_purchased", purchased)
+
+	aggregateID := idgenerator.Generate()
+	err = esam.Store(aggregateID, "item", "item_purchased", 0, purchased)
+	assert.NoError(t, err)
+
+	err = esam.Store(aggregateID, "item", "item_purchased", 0, purchased)
+	assert.Error(t, err)
+
+	received := struct {
+		PurchaseID string `json:"purchase_id"`
+		Quantity   int    `json:"quantity"`
+	}{
+		PurchaseID: purchased.PurchaseID,
+		Quantity:   20,
+	}
+	err = esam.Store(aggregateID, "item", "item_received", 0, received)
+	assert.Error(t, err)
+
+	err = esam.Store(aggregateID, "item", "item_received", 1, received)
 	assert.NoError(t, err)
 }
