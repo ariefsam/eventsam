@@ -62,6 +62,8 @@ func TestNewEventsam(t *testing.T) {
 		PurchaseID: purchased.PurchaseID,
 		Quantity:   20,
 	}
+
+	//error version
 	err = esam.Store(aggregateID, "item", "item_received", 0, received)
 	assert.Error(t, err)
 
