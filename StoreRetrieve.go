@@ -21,3 +21,13 @@ func (es Eventsam) Store(aggregateID string, aggregateName string, eventName str
 	err = es.db.Save(&entity).Error
 	return
 }
+
+func (es *Eventsam) Retrieve(aggregateID string, aggregateName string, version int) (events []EventEntity, err error) {
+	err = es.db.Where("aggregate_id = ? AND aggregate_name = ? AND version >= ? ", aggregateID, aggregateName, version).Find(&events).Error
+	return
+}
+
+func (es *EventEntity) DataToStruct(data any) (err error) {
+	err = json.Unmarshal([]byte(es.Data), data)
+	return
+}

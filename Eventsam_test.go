@@ -69,4 +69,60 @@ func TestNewEventsam(t *testing.T) {
 
 	err = esam.Store(aggregateID, "item", "item_received", 1, received)
 	assert.NoError(t, err)
+
+	events, err := esam.Retrieve(aggregateID, "item", 0)
+	assert.NoError(t, err)
+
+	item := Item{}
+	item.HandleEvents(events)
+
+}
+
+type Item struct {
+	ID       string `json:"id"`
+	Quantity int    `json:"quantity"`
+}
+
+func (i *Item) HandleEvents(event []eventsam.EventEntity) (err error) {
+
+	return
+}
+
+func (i *Item) HandleEvent(event eventsam.EventEntity) (err error) {
+	switch event.EventName {
+	case "item_purchased":
+		err = i.handleItemPurchased(event)
+	case "item_received":
+		err = i.handleItemReceived(event)
+	}
+	return
+}
+
+func (i *Item) handleItemPurchased(event eventsam.EventEntity) (err error) {
+	purchase := struct {
+		SKU          string  `json:"sku"`
+		PricePerItem float64 `json:"price_per_item"`
+		Quantity     int     `json:"quantity"`
+		PurchaseID   string  `json:"purchase_id"`
+	}{}
+	err = event.DataToStruct(&purchase)
+	if err != nil {
+		return
+	}
+	i.ID = event.AggregateID
+	i.Quantity = purchase.Quantity
+	return
+}
+
+func (i *Item) handleItemReceived(event eventsam.EventEntity) (err error) {
+	received := struct {
+		PurchaseID string `json:"purchase_id"`
+		Quantity   int    `json:"quantity"`
+	}{}
+	err = event.DataToStruct(&received)
+	if err != nil {
+		return
+	}
+	i.Quantity += received.Quantity
+	return
 }
