@@ -1,8 +1,10 @@
 package eventsam_test
 
 import (
+	"encoding/json"
 	"eventsam"
 	"eventsam/idgenerator"
+	"fmt"
 	"log"
 	"os"
 	"testing"
@@ -75,16 +77,24 @@ func TestNewEventsam(t *testing.T) {
 
 	item := Item{}
 	item.HandleEvents(events)
+	jx, _ := json.MarshalIndent(item, "", "  ")
+	fmt.Println(string(jx))
 
 }
 
 type Item struct {
-	ID       string `json:"id"`
-	Quantity int    `json:"quantity"`
+	ID                string `json:"id"`
+	QuantityPurchased int    `json:"quantity_purchased"`
+	QuantityReceived  int    `json:"quantity_received"`
 }
 
-func (i *Item) HandleEvents(event []eventsam.EventEntity) (err error) {
-
+func (i *Item) HandleEvents(events []eventsam.EventEntity) (err error) {
+	for _, event := range events {
+		err = i.HandleEvent(event)
+		if err != nil {
+			return
+		}
+	}
 	return
 }
 
@@ -110,7 +120,7 @@ func (i *Item) handleItemPurchased(event eventsam.EventEntity) (err error) {
 		return
 	}
 	i.ID = event.AggregateID
-	i.Quantity = purchase.Quantity
+	i.QuantityPurchased += purchase.Quantity
 	return
 }
 
@@ -123,6 +133,6 @@ func (i *Item) handleItemReceived(event eventsam.EventEntity) (err error) {
 	if err != nil {
 		return
 	}
-	i.Quantity += received.Quantity
+	i.QuantityReceived += received.Quantity
 	return
 }
