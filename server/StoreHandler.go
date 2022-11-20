@@ -3,8 +3,11 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"os"
 
 	"github.com/PT-Jojonomic-Indonesia/microkit/response"
+	"github.com/ariefsam/eventsam"
+	"github.com/ariefsam/eventsam/client"
 )
 
 type EventData struct {
@@ -17,18 +20,29 @@ type EventData struct {
 }
 
 func StoreHandler(w http.ResponseWriter, r *http.Request) {
-	if isSlave {
-		response.ErrorJSON(w, "this is slave", http.StatusForbidden)
-		return
-	}
+
 	data := EventData{}
 	err := json.NewDecoder(r.Body).Decode(&data)
 	if err != nil {
 		response.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
+	var event eventsam.EventEntity
+	if isSlave {
+		esamClient, err := client.NewEventsam(os.Getenv("MASTER_ADDRESS"))
+		if err != nil {
+			response.ErrorJSON(w, err, http.StatusInternalServerError)
+			return
+		}
+		event, err = esamClient.Store(data.AggregateID, data.AggregateName, data.EventName, data.Version, data.Data)
+		if err != nil {
+			response.ErrorJSON(w, err, http.StatusInternalServerError)
+			return
+		}
+		goto response
+	}
 
-	event, err := esam.Store(data.AggregateID, data.AggregateName, data.EventName, data.Version, data.Data)
+	event, err = esam.Store(data.AggregateID, data.AggregateName, data.EventName, data.Version, data.Data)
 	if err != nil {
 		response.ErrorJSON(w, err, http.StatusInternalServerError)
 		return
@@ -38,7 +52,7 @@ func StoreHandler(w http.ResponseWriter, r *http.Request) {
 		cond.Broadcast()
 		cond.L.Unlock()
 	}()
-
+response:
 	dataResp := map[string]any{
 		"message": "success",
 		"data":    event,

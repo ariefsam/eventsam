@@ -3,6 +3,7 @@ package client
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 
 	"log"
@@ -12,6 +13,10 @@ import (
 	"github.com/ariefsam/eventsam"
 	"github.com/ariefsam/eventsam/idgenerator"
 )
+
+func init() {
+	http.DefaultTransport.(*http.Transport).ResponseHeaderTimeout = time.Second * 45
+}
 
 type Eventsam struct {
 	server string
@@ -24,7 +29,7 @@ func NewEventsam(server string) (es Eventsam, err error) {
 	return
 }
 
-func (es Eventsam) Store(aggregateID string, aggregateName string, eventName string, version int64, data any) (err error) {
+func (es Eventsam) Store(aggregateID string, aggregateName string, eventName string, version int64, data any) (respEntity eventsam.EventEntity, err error) {
 	tmp, _ := json.Marshal(data)
 	dataString := string(tmp)
 	entity := eventsam.EventEntity{
@@ -38,6 +43,32 @@ func (es Eventsam) Store(aggregateID string, aggregateName string, eventName str
 	}
 	// err = es.db.Save(&entity).Error
 	log.Println(entity)
+	payload, _ := json.Marshal(entity)
+	payloadReader := bytes.NewReader(payload)
+	res, err := http.Post(es.server+"/store", "application/json", payloadReader)
+	if err != nil {
+		return
+	}
+	defer res.Body.Close()
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return
+	}
+	log.Println("body ", string(body))
+	resp := struct {
+		Error   bool                 `json:"error"`
+		Message string               `json:"message"`
+		Data    eventsam.EventEntity `json:"data"`
+	}{}
+	err = json.Unmarshal(body, &resp)
+	if err != nil {
+		return
+	}
+	if resp.Error {
+		err = errors.New(resp.Message)
+		return
+	}
+	respEntity = resp.Data
 	return
 }
 
@@ -56,7 +87,7 @@ func (es *Eventsam) FetchAllEvent(afterID, limit int) (events []eventsam.EventEn
 		return
 	}
 	filterReader := bytes.NewReader(jsonFilter)
-	http.DefaultTransport.(*http.Transport).ResponseHeaderTimeout = time.Second * 45
+
 	res, err := http.Post(es.server+"/fetch-all-event", "application/json", filterReader)
 	if err != nil {
 		return
@@ -71,7 +102,7 @@ func (es *Eventsam) FetchAllEvent(afterID, limit int) (events []eventsam.EventEn
 	if err != nil {
 		return
 	}
-	log.Println(string(body))
+
 	err = json.Unmarshal(body, &eventResponse)
 	if err != nil {
 		return
