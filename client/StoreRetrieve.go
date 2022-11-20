@@ -6,12 +6,10 @@ import (
 	"errors"
 	"io/ioutil"
 
-	"log"
 	"net/http"
 	"time"
 
 	"github.com/ariefsam/eventsam"
-	"github.com/ariefsam/eventsam/idgenerator"
 )
 
 func init() {
@@ -29,20 +27,26 @@ func NewEventsam(server string) (es Eventsam, err error) {
 	return
 }
 
+type EventData struct {
+	AggregateName string `json:"aggregate_name"`
+	AggregateID   string `json:"aggregate_id"`
+	EventName     string `json:"event_name"`
+	Version       int64  `json:"version"`
+	Data          any    `json:"data"`
+	TimeMillis    int64  `json:"time_millis"`
+}
+
 func (es Eventsam) Store(aggregateID string, aggregateName string, eventName string, version int64, data any) (respEntity eventsam.EventEntity, err error) {
-	tmp, _ := json.Marshal(data)
-	dataString := string(tmp)
-	entity := eventsam.EventEntity{
+
+	entity := EventData{
 		AggregateID:   aggregateID,
 		AggregateName: aggregateName,
-		EventID:       idgenerator.Generate(),
 		EventName:     eventName,
-		Data:          dataString,
+		Data:          data,
 		Version:       version,
 		TimeMillis:    time.Now().UnixMilli(),
 	}
-	// err = es.db.Save(&entity).Error
-	log.Println(entity)
+
 	payload, _ := json.Marshal(entity)
 	payloadReader := bytes.NewReader(payload)
 	res, err := http.Post(es.server+"/store", "application/json", payloadReader)
@@ -54,7 +58,7 @@ func (es Eventsam) Store(aggregateID string, aggregateName string, eventName str
 	if err != nil {
 		return
 	}
-	log.Println("body ", string(body))
+
 	resp := struct {
 		Error   bool                 `json:"error"`
 		Message string               `json:"message"`
@@ -73,6 +77,37 @@ func (es Eventsam) Store(aggregateID string, aggregateName string, eventName str
 }
 
 func (es *Eventsam) Retrieve(aggregateID string, aggregateName string, sinceVersion int) (events []eventsam.EventEntity, err error) {
+	filter := map[string]any{
+		"aggregate_id":   aggregateID,
+		"aggregate_name": aggregateName,
+		"after_version":  sinceVersion,
+	}
+	jsonFilter, err := json.Marshal(filter)
+	if err != nil {
+		return
+	}
+	filterReader := bytes.NewReader(jsonFilter)
+
+	res, err := http.Post(es.server+"/retrieve", "application/json", filterReader)
+	if err != nil {
+		return
+	}
+	defer res.Body.Close()
+	eventResponse := struct {
+		Data    []eventsam.EventEntity `json:"data"`
+		Error   bool                   `json:"error"`
+		Message string                 `json:"message"`
+	}{}
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return
+	}
+
+	err = json.Unmarshal(body, &eventResponse)
+	if err != nil {
+		return
+	}
+	events = eventResponse.Data
 
 	return
 }

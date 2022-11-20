@@ -25,6 +25,7 @@ func RetrieveHandler(w http.ResponseWriter, r *http.Request) {
 		response.ErrorJSON(w, err, http.StatusInternalServerError)
 		return
 	}
+
 	dataResp := map[string]any{
 		"message": "success",
 		"data":    events,
