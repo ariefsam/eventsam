@@ -3,9 +3,11 @@ package eventsam
 import (
 	"encoding/json"
 	"errors"
-	"eventsam/idgenerator"
+
 	"log"
 	"time"
+
+	"github.com/ariefsam/eventsam/idgenerator"
 )
 
 func (es Eventsam) Store(aggregateID string, aggregateName string, eventName string, version int64, data any) (entity EventEntity, err error) {
@@ -87,6 +89,6 @@ func (es *Eventsam) Retrieve(aggregateID string, aggregateName string, afterVers
 }
 
 func (es *Eventsam) FetchAllEvent(afterID, limit int) (events []EventEntity, err error) {
-	err = es.db.Where("id > ? ", afterID).Find(&events).Error
+	err = es.db.Where("id > ? ", afterID).Limit(limit).Find(&events).Error
 	return
 }

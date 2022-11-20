@@ -2,14 +2,15 @@ package eventsam_test
 
 import (
 	"encoding/json"
-	"eventsam"
-	"eventsam/idgenerator"
 	"fmt"
 	"log"
 	"os"
 	"testing"
 	"time"
 
+	"github.com/ariefsam/eventsam/idgenerator"
+
+	"github.com/ariefsam/eventsam"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"

@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"github.com/PT-Jojonomic-Indonesia/microkit/response"
@@ -18,6 +17,10 @@ type EventData struct {
 }
 
 func StoreHandler(w http.ResponseWriter, r *http.Request) {
+	if isSlave {
+		response.ErrorJSON(w, "this is slave", http.StatusForbidden)
+		return
+	}
 	data := EventData{}
 	err := json.NewDecoder(r.Body).Decode(&data)
 	if err != nil {
@@ -27,10 +30,15 @@ func StoreHandler(w http.ResponseWriter, r *http.Request) {
 
 	event, err := esam.Store(data.AggregateID, data.AggregateName, data.EventName, data.Version, data.Data)
 	if err != nil {
-		log.Println(err)
 		response.ErrorJSON(w, err, http.StatusInternalServerError)
 		return
 	}
+	go func() {
+		cond.L.Lock()
+		cond.Broadcast()
+		cond.L.Unlock()
+	}()
+
 	dataResp := map[string]any{
 		"message": "success",
 		"data":    event,
