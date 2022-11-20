@@ -51,10 +51,10 @@ func TestNewEventsam(t *testing.T) {
 	}
 
 	aggregateID := idgenerator.Generate()
-	err = esam.Store(aggregateID, "item", "item_purchased", 0, purchased)
+	_, err = esam.Store(aggregateID, "item", "item_purchased", 0, purchased)
 	assert.NoError(t, err)
 
-	err = esam.Store(aggregateID, "item", "item_purchased", 0, purchased)
+	_, err = esam.Store(aggregateID, "item", "item_purchased", 0, purchased)
 	assert.Error(t, err)
 
 	received := struct {
@@ -66,11 +66,12 @@ func TestNewEventsam(t *testing.T) {
 	}
 
 	//error version
-	err = esam.Store(aggregateID, "item", "item_received", 0, received)
+	_, err = esam.Store(aggregateID, "item", "item_received", 0, received)
 	assert.Error(t, err)
 
-	err = esam.Store(aggregateID, "item", "item_received", 1, received)
+	en, err := esam.Store(aggregateID, "item", "item_received", 1, received)
 	assert.NoError(t, err)
+	assert.NotZero(t, en.ID)
 
 	events, err := esam.Retrieve(aggregateID, "item", 0)
 	assert.NoError(t, err)
