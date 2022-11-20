@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -28,6 +29,11 @@ func FetchAllEventHandler(w http.ResponseWriter, r *http.Request) {
 	if len(events) == 0 {
 		c := make(chan bool)
 		go func() {
+			defer func() {
+				if r := recover(); r != nil {
+					fmt.Println("Recovered in f", r)
+				}
+			}()
 			cond.L.Lock()
 			cond.Wait()
 			cond.L.Unlock()
