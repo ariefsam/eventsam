@@ -48,6 +48,11 @@ func SlaveSync(db *gorm.DB) {
 				continue
 			}
 		}
+		go func() {
+			cond.L.Lock()
+			cond.Broadcast()
+			cond.L.Unlock()
+		}()
 
 	}
 }
