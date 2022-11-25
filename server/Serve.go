@@ -13,8 +13,10 @@ import (
 
 var esam eventsam.Eventsam
 var isSlave bool
-var messages chan string
+
 var cond *sync.Cond
+var lock sync.Mutex
+var condAggregate sync.Map
 
 func Serve(db *gorm.DB) {
 	var err error
