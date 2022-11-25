@@ -13,6 +13,7 @@ import (
 )
 
 func main() {
+	log.SetFlags(log.LstdFlags | log.Llongfile)
 	godotenv.Load()
 	filepath := os.Getenv("DB_FILEPATH")
 	if filepath == "" {

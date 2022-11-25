@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"os"
 
@@ -36,6 +37,7 @@ func StoreHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		event, err = esamClient.Store(data.AggregateID, data.AggregateName, data.EventName, data.Version, data.Data)
 		if err != nil {
+			log.Println(err)
 			response.ErrorJSON(w, err, http.StatusInternalServerError)
 			return
 		}
@@ -48,6 +50,7 @@ func StoreHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	go func() {
+		defer recover()
 		cond.L.Lock()
 		cond.Broadcast()
 		cond.L.Unlock()
