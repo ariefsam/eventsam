@@ -15,8 +15,8 @@ var esam eventsam.Eventsam
 var isSlave bool
 
 var cond *sync.Cond
-var lock sync.Mutex
-var condAggregate sync.Map
+var condLock sync.Mutex
+var condAggregate map[string]*sync.Cond
 
 func Serve(db *gorm.DB) {
 	var err error

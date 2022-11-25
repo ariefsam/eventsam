@@ -55,6 +55,13 @@ func StoreHandler(w http.ResponseWriter, r *http.Request) {
 		cond.Broadcast()
 		cond.L.Unlock()
 	}()
+	go func() {
+		defer recover()
+		condA := getCondAggregate(data.AggregateName)
+		condA.L.Lock()
+		condA.Broadcast()
+		condA.L.Unlock()
+	}()
 response:
 	dataResp := map[string]any{
 		"message": "success",

@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/PT-Jojonomic-Indonesia/microkit/response"
@@ -14,6 +15,17 @@ type FetchAggregateEventInput struct {
 	Limit         int    `json:"limit"`
 }
 
+func getCondAggregate(aggregateName string) *sync.Cond {
+	condLock.Lock()
+	defer condLock.Unlock()
+	condAggregateSingle, ok := condAggregate[aggregateName]
+	if !ok {
+		condAggregateSingle = sync.NewCond(&sync.Mutex{})
+		condAggregate[aggregateName] = condAggregateSingle
+	}
+	return condAggregateSingle
+}
+
 func FetchAggregateEventHandler(w http.ResponseWriter, r *http.Request) {
 	dataInput := FetchAggregateEventInput{}
 	err := json.NewDecoder(r.Body).Decode(&dataInput)
@@ -21,7 +33,7 @@ func FetchAggregateEventHandler(w http.ResponseWriter, r *http.Request) {
 		response.ErrorJSON(w, err, http.StatusBadRequest)
 		return
 	}
-	events, err := esam.FetchAllEvent(dataInput.AfterID, dataInput.Limit)
+	events, err := esam.FetchAggregateEvent(dataInput.AggregateName, dataInput.AfterID, dataInput.Limit)
 	if err != nil {
 		response.ErrorJSON(w, err, http.StatusInternalServerError)
 		return
@@ -30,9 +42,10 @@ func FetchAggregateEventHandler(w http.ResponseWriter, r *http.Request) {
 		c := make(chan bool)
 		go func() {
 			defer recover()
-			cond.L.Lock()
-			cond.Wait()
-			cond.L.Unlock()
+			condA := getCondAggregate(dataInput.AggregateName)
+			condA.L.Lock()
+			condA.Wait()
+			condA.L.Unlock()
 			c <- true
 		}()
 		select {
