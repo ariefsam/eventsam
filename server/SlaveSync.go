@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"log"
@@ -23,7 +23,6 @@ func SlaveSync(db *gorm.DB) {
 		db.Last(&curEvent)
 
 		afterID := curEvent.ID
-		log.Println("fetch after id", afterID)
 
 		clientService, err := client.NewEventsam(os.Getenv("MASTER_ADDRESS"))
 		if err != nil {
@@ -38,7 +37,6 @@ func SlaveSync(db *gorm.DB) {
 			continue
 		}
 		if len(events) == 0 {
-			log.Println("no new event")
 			time.Sleep(1 * time.Second)
 		}
 		for _, event := range events {

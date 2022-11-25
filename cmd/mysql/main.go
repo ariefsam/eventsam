@@ -3,29 +3,17 @@ package main
 import (
 	"log"
 	"os"
-	"sync"
 	"time"
 
-	"github.com/PT-Jojonomic-Indonesia/microkit/server"
-	"github.com/ariefsam/eventsam"
+	"github.com/ariefsam/eventsam/server"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
-var esam eventsam.Eventsam
-var isSlave bool
-var messages chan string
-var cond *sync.Cond
-
 func main() {
-
-	log.SetFlags(log.LstdFlags | log.Llongfile)
 	godotenv.Load()
-
-	cond = sync.NewCond(&sync.Mutex{})
-
 	filepath := os.Getenv("DB_FILEPATH")
 	if filepath == "" {
 		filepath = "./event.db"
@@ -45,21 +33,5 @@ func main() {
 		log.Fatal(err)
 		return
 	}
-	if os.Getenv("MASTER_ADDRESS") != "" {
-		isSlave = true
-		go SlaveSync(db)
-	}
-
-	esam, err = eventsam.NewEventsam(db)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	router := getRoutes()
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "80"
-	}
-	server.Serve(port, router)
+	server.Serve(db)
 }

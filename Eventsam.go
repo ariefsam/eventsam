@@ -18,7 +18,8 @@ type EventEntity struct {
 }
 
 type Eventsam struct {
-	db *gorm.DB
+	db        *gorm.DB
+	publisher map[string]Publisher
 }
 
 func NewEventsam(db *gorm.DB) (es Eventsam, err error) {
@@ -27,6 +28,17 @@ func NewEventsam(db *gorm.DB) (es Eventsam, err error) {
 	}
 	es.db.AutoMigrate(&EventEntity{})
 	return
+}
+
+type Publisher interface {
+	Publish(event EventEntity) (err error)
+}
+
+func (es *Eventsam) SetPublisher(id string, publisher Publisher) {
+	if es.publisher == nil {
+		es.publisher = map[string]Publisher{}
+	}
+	es.publisher[id] = publisher
 }
 
 func (es *EventEntity) DataToStruct(data any) (err error) {
