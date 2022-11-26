@@ -15,7 +15,7 @@ func TestNewEventsam(t *testing.T) {
 		"a": 10,
 		"b": "c",
 	}
-	resp, err := es.Store("aggregate_id", "aggregate_type", "event_type", 2, data)
+	resp, err := es.Store("aggregate_id", "aggregate_type", "event_type", 1, data)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, resp)
 	log.Println(resp)
@@ -24,4 +24,9 @@ func TestNewEventsam(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, resp2)
 	log.Println(resp2)
+
+	resp3, err := es.FetchAggregateEvent("aggregate_type", 0, 100)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, resp3)
+	log.Println(resp3)
 }

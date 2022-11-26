@@ -59,13 +59,17 @@ func StoreHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	go func() {
-		defer recover()
+		defer func() {
+			recover()
+		}()
 		cond.L.Lock()
 		cond.Broadcast()
 		cond.L.Unlock()
 	}()
 	go func() {
-		defer recover()
+		defer func() {
+			recover()
+		}()
 		condA := getCondAggregate(data.AggregateName)
 		condA.L.Lock()
 		condA.Broadcast()

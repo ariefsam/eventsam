@@ -145,3 +145,39 @@ func (es *Eventsam) FetchAllEvent(afterID, limit int) (events []eventsam.EventEn
 	events = eventResponse.Data
 	return
 }
+
+func (es *Eventsam) FetchAggregateEvent(aggregateName string, afterID, limit int) (events []eventsam.EventEntity, err error) {
+	filter := map[string]any{
+		"aggregate_name": aggregateName,
+		"after_id":       afterID,
+		"limit":          limit,
+	}
+
+	jsonFilter, err := json.Marshal(filter)
+	if err != nil {
+		return
+	}
+	filterReader := bytes.NewReader(jsonFilter)
+
+	res, err := http.Post(es.server+"/fetch-aggregate-event", "application/json", filterReader)
+	if err != nil {
+		return
+	}
+	defer res.Body.Close()
+	eventResponse := struct {
+		Data    []eventsam.EventEntity `json:"data"`
+		Error   bool                   `json:"error"`
+		Message string                 `json:"message"`
+	}{}
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return
+	}
+
+	err = json.Unmarshal(body, &eventResponse)
+	if err != nil {
+		return
+	}
+	events = eventResponse.Data
+	return
+}

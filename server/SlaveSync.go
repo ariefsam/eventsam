@@ -11,12 +11,6 @@ import (
 )
 
 func SlaveSync(db *gorm.DB) {
-	defer func() {
-		if r := recover(); r != nil {
-			log.Println("Recovered in SlaveSync", r)
-		}
-		log.Println("Exiting")
-	}()
 	for {
 
 		curEvent := eventsam.EventEntity{}
@@ -39,7 +33,9 @@ func SlaveSync(db *gorm.DB) {
 		if len(events) == 0 {
 			time.Sleep(1 * time.Second)
 		}
+		eventMap := map[string]bool{}
 		for _, event := range events {
+			eventMap[event.AggregateName] = true
 			err = db.Save(&event).Error
 			if err != nil {
 				log.Println(err)
@@ -47,9 +43,24 @@ func SlaveSync(db *gorm.DB) {
 			}
 		}
 		go func() {
+			defer func() {
+				recover()
+			}()
 			cond.L.Lock()
 			cond.Broadcast()
 			cond.L.Unlock()
+		}()
+
+		go func() {
+			defer func() {
+				recover()
+			}()
+			for aggregateName, _ := range eventMap {
+				condA := getCondAggregate(aggregateName)
+				condA.L.Lock()
+				condA.Broadcast()
+				condA.L.Unlock()
+			}
 		}()
 
 	}
