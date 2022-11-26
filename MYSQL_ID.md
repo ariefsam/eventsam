@@ -14,7 +14,7 @@ Untuk instalasi server, silahkan ikuti langkah-langkah berikut:
 
 ## Environment
 ### Sebagai Server Master
-Gunakan DB_FILEPATH dengan akhiran db. Nama file bebas. Contoh:
+Gunakan beberapa environment database. Contoh:
 ```
 PORT=8009
 
@@ -27,7 +27,7 @@ MYSQL_DATABASE=eventsam
 
 
 ### Sebagai Server Slave
-Sebagai server slave, tambahkan `MASTER_ADDRESS`, yaitu alamat eventsam master tanpa `/` Gunakan DB_FILEPATH dengan akhiran db. Nama file bebas. Contoh:
+Sebagai server slave, tambahkan `MASTER_ADDRESS`, yaitu alamat eventsam master tanpa `/`. Contoh:
 ```
 PORT=8009
 
