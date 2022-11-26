@@ -17,3 +17,5 @@
 *.env
 eventsam
 *.DS_Store
+mysql
+sqlite
