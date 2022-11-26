@@ -18,6 +18,7 @@ type FetchAggregateEventInput struct {
 func getCondAggregate(aggregateName string) *sync.Cond {
 	condLock.Lock()
 	defer condLock.Unlock()
+
 	condAggregateSingle, ok := condAggregate[aggregateName]
 	if !ok {
 		condAggregateSingle = sync.NewCond(&sync.Mutex{})
@@ -27,6 +28,7 @@ func getCondAggregate(aggregateName string) *sync.Cond {
 }
 
 func FetchAggregateEventHandler(w http.ResponseWriter, r *http.Request) {
+	defer recover()
 	dataInput := FetchAggregateEventInput{}
 	err := json.NewDecoder(r.Body).Decode(&dataInput)
 	if err != nil {
@@ -41,7 +43,9 @@ func FetchAggregateEventHandler(w http.ResponseWriter, r *http.Request) {
 	if len(events) == 0 {
 		c := make(chan bool)
 		go func() {
-			defer recover()
+			defer func() {
+				recover()
+			}()
 			condA := getCondAggregate(dataInput.AggregateName)
 			condA.L.Lock()
 			condA.Wait()

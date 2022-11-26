@@ -5,11 +5,20 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sync"
 
 	"github.com/PT-Jojonomic-Indonesia/microkit/response"
 	"github.com/ariefsam/eventsam"
 	"github.com/ariefsam/eventsam/client"
 )
+
+var cond *sync.Cond
+var condLock sync.Mutex
+var condAggregate map[string]*sync.Cond
+
+func init() {
+	condAggregate = make(map[string]*sync.Cond)
+}
 
 type EventData struct {
 	AggregateName string `json:"aggregate_name"`

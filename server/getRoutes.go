@@ -13,5 +13,6 @@ func getRoutes() http.Handler {
 	route.Path("/store").Methods(http.MethodPost).HandlerFunc(StoreHandler)
 	route.Path("/retrieve").Methods(http.MethodPost).HandlerFunc(RetrieveHandler)
 	route.Path("/fetch-all-event").Methods(http.MethodPost).HandlerFunc(FetchAllEventHandler)
+	route.Path("/fetch-aggregate-event").Methods(http.MethodPost).HandlerFunc(FetchAggregateEventHandler)
 	return route
 }
