@@ -5,7 +5,7 @@ Eventsam SQLite adalah versi dari Eventsam yang menggunakan SQLite sebagai engin
 Untuk instalasi server, silahkan ikuti langkah-langkah berikut:
 1. Clone repository ini
 2. Masuk ke folder cmd/mysql `cd cmd/sqlite`
-3. Jalankan perintah `go build -o ./eventsam ./server` di dalam directory
+3. Jalankan perintah `go build -o ./eventsam` di dalam directory
 4. Jalankan perintah `./eventsam` untuk pengecekan instalasi
 5. Copy file `eventsam` ke folder yang diinginkan
 6. Tambahkan file `.env` di folder yang sama dengan file `eventsam` yang sudah di-copy, atau bisa juga menjalankan binary ini dengan menambahkan sendiri enviornment di command line
