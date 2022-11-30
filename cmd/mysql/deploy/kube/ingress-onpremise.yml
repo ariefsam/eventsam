@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: @REPO_NAME@-ingress
+  namespace: @NAMESPACE@
+  annotations:
+    kubernetes.io/ingress.class: "public"
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "180"
+    nginx.ingress.kubernetes.io/proxy-next-upstream-timeout: "180"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "180"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "180"
+    nginx.ingress.kubernetes.io/rewrite-target: /eventsam/$2
+spec:
+  rules:
+    - host: "@INGRESS_DOMAIN@"
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/v1/eventsam(/|$)(.*)"
+            backend:
+              service:
+                name: @REPO_NAME@
+                port:
+                  number: 80
