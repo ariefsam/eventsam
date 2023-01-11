@@ -3,13 +3,14 @@ package client
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
+
 	"io/ioutil"
 
 	"net/http"
 	"time"
 
 	"github.com/ariefsam/eventsam"
+	"github.com/pkg/errors"
 )
 
 func init() {
@@ -47,15 +48,21 @@ func (es Eventsam) Store(aggregateID string, aggregateName string, eventName str
 		TimeMillis:    time.Now().UnixMilli(),
 	}
 
-	payload, _ := json.Marshal(entity)
+	payload, err := json.Marshal(entity)
+	if err != nil {
+		err = errors.Wrap(err, "error marshal to json")
+		return
+	}
 	payloadReader := bytes.NewReader(payload)
 	res, err := http.Post(es.server+"/store", "application/json", payloadReader)
 	if err != nil {
+		err = errors.Wrap(err, "error post to server eventsam")
 		return
 	}
 	defer res.Body.Close()
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
+		err = errors.Wrap(err, "error read response body from eventsam")
 		return
 	}
 
