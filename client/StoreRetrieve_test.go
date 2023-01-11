@@ -11,6 +11,11 @@ import (
 func TestNewEventsam(t *testing.T) {
 	es, err := client.NewEventsam("http://localhost:8009")
 	assert.NoError(t, err)
+
+	respx, err := es.Retrieve("aggregate_id", "aggregate_type", 0)
+	assert.NoError(t, err)
+	log.Println(respx)
+
 	data := map[string]any{
 		"a": 10,
 		"b": "c",
