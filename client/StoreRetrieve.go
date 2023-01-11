@@ -3,6 +3,7 @@ package client
 import (
 	"bytes"
 	"encoding/json"
+	"strings"
 
 	"io/ioutil"
 
@@ -22,6 +23,7 @@ type Eventsam struct {
 }
 
 func NewEventsam(server string) (es Eventsam, err error) {
+	server = strings.TrimSuffix(server, "/")
 	es = Eventsam{
 		server: server,
 	}
