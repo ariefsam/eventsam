@@ -28,7 +28,9 @@ func FetchAllEventHandler(w http.ResponseWriter, r *http.Request) {
 	if len(events) == 0 {
 		c := make(chan bool)
 		go func() {
-			defer recover()
+			defer func() {
+				recover()
+			}()
 			cond.L.Lock()
 			cond.Wait()
 			cond.L.Unlock()
