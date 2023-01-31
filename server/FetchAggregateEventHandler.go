@@ -28,7 +28,9 @@ func getCondAggregate(aggregateName string) *sync.Cond {
 }
 
 func FetchAggregateEventHandler(w http.ResponseWriter, r *http.Request) {
-	defer recover()
+	defer func() {
+		recover()
+	}()
 	dataInput := FetchAggregateEventInput{}
 	err := json.NewDecoder(r.Body).Decode(&dataInput)
 	if err != nil {
