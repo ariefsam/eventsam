@@ -40,7 +40,7 @@ func (es Eventsam) Store(aggregateID string, aggregateName string, eventName str
 	dataString := string(tmp)
 
 	oldEvent := []EventEntity{}
-	err = es.db.Limit(1).Order("id DESC").Where("aggregate_id = ? AND aggregate_name = ? ", aggregateID, aggregateName).Find(&oldEvent).Error
+	err = es.db.Limit(1).Order("id DESC").Where("aggregate_id = ? AND aggregate_name = ? ", aggregateID, aggregateName).Order("id asc").Find(&oldEvent).Error
 	if err != nil {
 		return
 	}
