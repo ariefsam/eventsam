@@ -84,16 +84,16 @@ func (es Eventsam) Store(aggregateID string, aggregateName string, eventName str
 }
 
 func (es *Eventsam) Retrieve(aggregateID string, aggregateName string, afterVersion int) (events []EventEntity, err error) {
-	err = es.db.Where("aggregate_id = ? AND aggregate_name = ? AND version > ? ", aggregateID, aggregateName, afterVersion).Find(&events).Error
+	err = es.db.Where("aggregate_id = ? AND aggregate_name = ? AND version > ? ", aggregateID, aggregateName, afterVersion).Order("id asc").Find(&events).Error
 	return
 }
 
 func (es *Eventsam) FetchAllEvent(afterID, limit int) (events []EventEntity, err error) {
-	err = es.db.Where("id > ? ", afterID).Limit(limit).Find(&events).Error
+	err = es.db.Where("id > ? ", afterID).Order("id asc").Limit(limit).Find(&events).Error
 	return
 }
 
 func (es *Eventsam) FetchAggregateEvent(aggregateName string, afterID, limit int) (events []EventEntity, err error) {
-	err = es.db.Where("id > ? AND aggregate_name = ? ", afterID, aggregateName).Limit(limit).Find(&events).Error
+	err = es.db.Where("id > ? AND aggregate_name = ? ", afterID, aggregateName).Order("id asc").Limit(limit).Find(&events).Error
 	return
 }
