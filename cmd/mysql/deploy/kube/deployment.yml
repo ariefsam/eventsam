@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: @REPO_NAME@
+  namespace: @NAMESPACE@
+  labels:
+    app: @REPO_NAME@
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: @REPO_NAME@
+      tier: backend
+  template:
+    metadata:
+      labels:
+        app: @REPO_NAME@
+        tier: backend
+    spec:
+      containers:
+        - name: @REPO_NAME@
+          image: @IMAGE@
+          imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: 50m
+              memory: 30Mi
+            limits:
+              cpu: 300m
+              memory: 500Mi
+          ports:
+            - containerPort: 80
+      tolerations:
+        - key: backend/eventsam
+          operator: Equal
+          value: 'true'
+          effect: NoSchedule
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 180
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: @REPO_NAME@
+  namespace: @NAMESPACE@
+spec:
+  maxReplicas: 1
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: @REPO_NAME@
+  targetCPUUtilizationPercentage: 60
