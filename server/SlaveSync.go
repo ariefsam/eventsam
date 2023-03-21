@@ -55,7 +55,7 @@ func SlaveSync(db *gorm.DB) {
 			defer func() {
 				recover()
 			}()
-			for aggregateName, _ := range eventMap {
+			for aggregateName := range eventMap {
 				condA := getCondAggregate(aggregateName)
 				condA.L.Lock()
 				condA.Broadcast()
