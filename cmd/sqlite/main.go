@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/ariefsam/eventsam/server"
+	"github.com/glebarez/sqlite"
 	"github.com/joho/godotenv"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -20,6 +20,8 @@ func main() {
 		filepath = "./event.db"
 	}
 
+	filepath += "?cache=shared&&mode=rwc"
+
 	logService := logger.New(log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
 		logger.Config{
 			SlowThreshold:             time.Second,  // Slow SQL threshold
@@ -28,7 +30,8 @@ func main() {
 			Colorful:                  true,         // Disable color
 		})
 	db, err := gorm.Open(sqlite.Open(filepath), &gorm.Config{
-		Logger: logService,
+		Logger:      logService,
+		PrepareStmt: true,
 	})
 
 	if err != nil {

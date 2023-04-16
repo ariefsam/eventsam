@@ -13,7 +13,7 @@ import (
 
 var esam eventsam.Eventsam
 var isSlave bool
-var logger = log.New(os.Stdout, "Eventsam v.1.0.0 ", log.LstdFlags|log.Llongfile)
+var logger = log.New(os.Stdout, "Eventsam v.1.1.0 ", log.LstdFlags|log.Llongfile)
 
 func Serve(db *gorm.DB) {
 	var err error

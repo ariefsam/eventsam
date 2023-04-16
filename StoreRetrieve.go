@@ -39,28 +39,31 @@ func (es Eventsam) Store(aggregateID string, aggregateName string, eventName str
 
 	dataString := string(tmp)
 
-	oldEvent := []EventEntity{}
-	err = es.db.Limit(1).Order("id DESC").Where("aggregate_id = ? AND aggregate_name = ? ", aggregateID, aggregateName).Order("id asc").Find(&oldEvent).Error
-	if err != nil {
-		return
-	}
+	if version > 1 {
 
-	if len(oldEvent) == 0 {
-		if version > 1 {
-			err = errors.New("please start with version 1")
+		oldEvent := []EventEntity{}
+		err = es.db.Limit(1).Order("id DESC").Where("aggregate_id = ? AND aggregate_name = ? ", aggregateID, aggregateName).Order("id asc").Find(&oldEvent).Error
+		if err != nil {
 			return
 		}
-	}
 
-	if len(oldEvent) > 0 {
-		diffVersion := version - oldEvent[0].Version
-		if diffVersion == 0 {
-			err = errors.New("duplicate version")
-			return
+		if len(oldEvent) == 0 {
+			if version > 1 {
+				err = errors.New("please start with version 1")
+				return
+			}
 		}
-		if version-oldEvent[0].Version > 1 {
-			err = errors.New("version is not sequential")
-			return
+
+		if len(oldEvent) > 0 {
+			diffVersion := version - oldEvent[0].Version
+			if diffVersion == 0 {
+				err = errors.New("duplicate version")
+				return
+			}
+			if version-oldEvent[0].Version > 1 {
+				err = errors.New("version is not sequential")
+				return
+			}
 		}
 	}
 
