@@ -13,6 +13,7 @@ import (
 
 var esam eventsam.Eventsam
 var isSlave bool
+var logger = log.New(os.Stdout, "Eventsam v.1.0.0 ", log.LstdFlags|log.Llongfile)
 
 func Serve(db *gorm.DB) {
 	var err error
@@ -38,5 +39,6 @@ func Serve(db *gorm.DB) {
 	if port == "" {
 		port = "80"
 	}
+	logger.Println("Server is running on port " + port)
 	server.Serve(port, router)
 }
