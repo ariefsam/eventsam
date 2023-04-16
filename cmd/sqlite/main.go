@@ -30,9 +30,16 @@ func main() {
 	db, err := gorm.Open(sqlite.Open(filepath), &gorm.Config{
 		Logger: logService,
 	})
+
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
+	sqldb, err := db.DB()
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	sqldb.SetMaxIdleConns(1)
 	server.Serve(db)
 }
