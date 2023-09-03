@@ -1,10 +1,11 @@
 package eventsam
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
-
 	"log"
+
 	"time"
 
 	"github.com/ariefsam/eventsam/idgenerator"
@@ -31,18 +32,22 @@ func (es Eventsam) Store(aggregateID string, aggregateName string, eventName str
 		err = errors.New("data is empty")
 		return
 	}
-	tmp, err := json.Marshal(data)
+
+	bf := bytes.NewBuffer([]byte{})
+	jsonEncoder := json.NewEncoder(bf)
+	jsonEncoder.SetEscapeHTML(false)
+	err = jsonEncoder.Encode(data)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	dataString := string(tmp)
+	dataString := bf.String()
 
 	if version > 1 {
 
 		oldEvent := []EventEntity{}
-		err = es.db.Limit(1).Order("id DESC").Where("aggregate_id = ? AND aggregate_name = ? ", aggregateID, aggregateName).Order("id asc").Find(&oldEvent).Error
+		err = es.db.Limit(1).Order("id DESC").Where("aggregate_id = ? AND aggregate_name = ? ", aggregateID, aggregateName).Find(&oldEvent).Error
 		if err != nil {
 			return
 		}

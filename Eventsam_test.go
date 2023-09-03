@@ -20,6 +20,7 @@ import (
 func TestNewEventsam(t *testing.T) {
 
 	filepath := "test_db.db"
+	os.Remove(filepath)
 	logService := logger.New(log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
 		logger.Config{
 			SlowThreshold:             time.Second,  // Slow SQL threshold
@@ -52,10 +53,10 @@ func TestNewEventsam(t *testing.T) {
 	}
 
 	aggregateID := idgenerator.Generate()
-	_, err = esam.Store(aggregateID, "item", "item_purchased", 0, purchased)
+	_, err = esam.Store(aggregateID, "item", "item_purchased", 1, purchased)
 	assert.NoError(t, err)
 
-	_, err = esam.Store(aggregateID, "item", "item_purchased", 0, purchased)
+	_, err = esam.Store(aggregateID, "item", "item_purchased", 1, purchased)
 	assert.Error(t, err)
 
 	received := struct {
@@ -67,10 +68,10 @@ func TestNewEventsam(t *testing.T) {
 	}
 
 	//error version
-	_, err = esam.Store(aggregateID, "item", "item_received", 0, received)
+	_, err = esam.Store(aggregateID, "item", "item_received", 1, received)
 	assert.Error(t, err)
 
-	en, err := esam.Store(aggregateID, "item", "item_received", 1, received)
+	en, err := esam.Store(aggregateID, "item", "item_received", 2, received)
 	assert.NoError(t, err)
 	assert.NotZero(t, en.ID)
 
