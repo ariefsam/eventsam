@@ -19,6 +19,8 @@ import (
 
 func TestNewEventsam(t *testing.T) {
 
+	log.Default().SetFlags(log.LstdFlags | log.Llongfile)
+
 	filepath := "test_db.db"
 	os.Remove(filepath)
 	logService := logger.New(log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
@@ -82,6 +84,16 @@ func TestNewEventsam(t *testing.T) {
 	item.HandleEvents(events)
 	jx, _ := json.MarshalIndent(item, "", "  ")
 	fmt.Println(string(jx))
+
+	_, err = esam.Store(aggregateID, "itemx", "itemx_received", 1, received)
+	assert.NoError(t, err)
+
+	events, err = esam.FetchAggregatesEvent([]string{"item", "itemx"}, 0, 10)
+	assert.NoError(t, err)
+	assert.NotZero(t, len(events))
+
+	// x, _ := json.MarshalIndent(events, "", "  ")
+	// log.Println(string(x))
 
 }
 

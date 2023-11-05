@@ -105,3 +105,8 @@ func (es *Eventsam) FetchAggregateEvent(aggregateName string, afterID, limit int
 	err = es.db.Where("id > ? AND aggregate_name = ? ", afterID, aggregateName).Order("id asc").Limit(limit).Find(&events).Error
 	return
 }
+
+func (es *Eventsam) FetchAggregatesEvent(aggregateNames []string, afterID, limit int) (events []EventEntity, err error) {
+	err = es.db.Where("id > ? AND aggregate_name IN ? ", afterID, aggregateNames).Order("id asc").Limit(limit).Find(&events).Error
+	return
+}
