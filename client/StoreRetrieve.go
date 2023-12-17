@@ -19,7 +19,8 @@ func init() {
 }
 
 type Eventsam struct {
-	server string
+	server                string
+	waitTimeMillisIfEmpty int64
 }
 
 func NewEventsam(server string) (es Eventsam, err error) {
@@ -28,6 +29,10 @@ func NewEventsam(server string) (es Eventsam, err error) {
 		server: server,
 	}
 	return
+}
+
+func (es *Eventsam) SetWaitIfEmpty(input time.Duration) {
+	es.waitTimeMillisIfEmpty = int64(input.Milliseconds())
 }
 
 type EventData struct {
@@ -123,8 +128,9 @@ func (es *Eventsam) Retrieve(aggregateID string, aggregateName string, sinceVers
 
 func (es *Eventsam) FetchAllEvent(afterID, limit int) (events []eventsam.EventEntity, err error) {
 	filter := map[string]any{
-		"after_id": afterID,
-		"limit":    limit,
+		"after_id":                  afterID,
+		"limit":                     limit,
+		"wait_time_millis_if_empty": es.waitTimeMillisIfEmpty,
 	}
 	jsonFilter, err := json.Marshal(filter)
 	if err != nil {
@@ -157,9 +163,10 @@ func (es *Eventsam) FetchAllEvent(afterID, limit int) (events []eventsam.EventEn
 
 func (es *Eventsam) FetchAggregateEvent(aggregateName string, afterID, limit int) (events []eventsam.EventEntity, err error) {
 	filter := map[string]any{
-		"aggregate_name": aggregateName,
-		"after_id":       afterID,
-		"limit":          limit,
+		"aggregate_name":            aggregateName,
+		"after_id":                  afterID,
+		"limit":                     limit,
+		"wait_time_millis_if_empty": es.waitTimeMillisIfEmpty,
 	}
 
 	jsonFilter, err := json.Marshal(filter)

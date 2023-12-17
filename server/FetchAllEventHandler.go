@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"time"
 
@@ -9,8 +10,9 @@ import (
 )
 
 type FetchAllEventInput struct {
-	AfterID int `json:"after_id"`
-	Limit   int `json:"limit"`
+	WaitTimeMillisIfEmpty int64 `json:"wait_time_millis_if_empty"`
+	AfterID               int   `json:"after_id"`
+	Limit                 int   `json:"limit"`
 }
 
 func FetchAllEventHandler(w http.ResponseWriter, r *http.Request) {
@@ -29,7 +31,9 @@ func FetchAllEventHandler(w http.ResponseWriter, r *http.Request) {
 		c := make(chan bool)
 		go func() {
 			defer func() {
-				recover()
+				if r := recover(); r != nil {
+					log.Println("Recovered in f", r)
+				}
 			}()
 			cond.L.Lock()
 			cond.Wait()
@@ -38,7 +42,7 @@ func FetchAllEventHandler(w http.ResponseWriter, r *http.Request) {
 		}()
 		select {
 		case <-c:
-		case <-time.After(25 * time.Second):
+		case <-time.After(time.Duration(dataInput.WaitTimeMillisIfEmpty) * time.Millisecond):
 		}
 
 		close(c)

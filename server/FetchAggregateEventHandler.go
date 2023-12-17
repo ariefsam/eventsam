@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"sync"
 	"time"
@@ -10,9 +11,10 @@ import (
 )
 
 type FetchAggregateEventInput struct {
-	AggregateName string `json:"aggregate_name"`
-	AfterID       int    `json:"after_id"`
-	Limit         int    `json:"limit"`
+	WaitTimeMillisIfEmpty int64  `json:"wait_time_millis_if_empty"`
+	AggregateName         string `json:"aggregate_name"`
+	AfterID               int    `json:"after_id"`
+	Limit                 int    `json:"limit"`
 }
 
 func getCondAggregate(aggregateName string) *sync.Cond {
@@ -46,7 +48,9 @@ func FetchAggregateEventHandler(w http.ResponseWriter, r *http.Request) {
 		c := make(chan bool)
 		go func() {
 			defer func() {
-				recover()
+				if r := recover(); r != nil {
+					log.Println("Recovered in f", r)
+				}
 			}()
 			condA := getCondAggregate(dataInput.AggregateName)
 			condA.L.Lock()
@@ -56,7 +60,7 @@ func FetchAggregateEventHandler(w http.ResponseWriter, r *http.Request) {
 		}()
 		select {
 		case <-c:
-		case <-time.After(25 * time.Second):
+		case <-time.After(time.Duration(dataInput.WaitTimeMillisIfEmpty) * time.Millisecond):
 		}
 
 		close(c)
