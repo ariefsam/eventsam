@@ -46,6 +46,7 @@ func FetchAggregateEventHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if len(events) == 0 {
 		c := make(chan bool)
+		var canceled bool
 		go func() {
 			defer func() {
 				if r := recover(); r != nil {
@@ -56,14 +57,19 @@ func FetchAggregateEventHandler(w http.ResponseWriter, r *http.Request) {
 			condA.L.Lock()
 			condA.Wait()
 			condA.L.Unlock()
-			c <- true
+			//check if channel is closed
+
+			if !canceled {
+				c <- true
+			}
+			close(c)
 		}()
 		select {
 		case <-c:
 		case <-time.After(time.Duration(dataInput.WaitTimeMillisIfEmpty) * time.Millisecond):
 		}
 
-		close(c)
+		canceled = true
 		events, err = esam.FetchAggregateEvent(dataInput.AggregateName, dataInput.AfterID, dataInput.Limit)
 		if err != nil {
 			response.ErrorJSON(w, err, http.StatusInternalServerError)
