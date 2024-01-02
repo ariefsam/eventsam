@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"sync/atomic"
 	"time"
 
 	"github.com/PT-Jojonomic-Indonesia/microkit/response"
@@ -27,6 +28,8 @@ func FetchAllEventHandler(w http.ResponseWriter, r *http.Request) {
 		response.ErrorJSON(w, err, http.StatusInternalServerError)
 		return
 	}
+
+	var canceled atomic.Bool
 	if len(events) == 0 {
 		c := make(chan bool)
 		go func() {
@@ -38,14 +41,17 @@ func FetchAllEventHandler(w http.ResponseWriter, r *http.Request) {
 			cond.L.Lock()
 			cond.Wait()
 			cond.L.Unlock()
-			c <- true
+			if !canceled.Load() {
+				c <- true
+			}
+			close(c)
 		}()
 		select {
 		case <-c:
 		case <-time.After(time.Duration(dataInput.WaitTimeMillisIfEmpty) * time.Millisecond):
 		}
 
-		close(c)
+		canceled.Store(true)
 		events, err = esam.FetchAllEvent(dataInput.AfterID, dataInput.Limit)
 		if err != nil {
 			response.ErrorJSON(w, err, http.StatusInternalServerError)

@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/PT-Jojonomic-Indonesia/microkit/response"
@@ -46,7 +47,7 @@ func FetchAggregateEventHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if len(events) == 0 {
 		c := make(chan bool)
-		var canceled bool
+		var canceled atomic.Bool
 		go func() {
 			defer func() {
 				if r := recover(); r != nil {
@@ -57,9 +58,8 @@ func FetchAggregateEventHandler(w http.ResponseWriter, r *http.Request) {
 			condA.L.Lock()
 			condA.Wait()
 			condA.L.Unlock()
-			//check if channel is closed
 
-			if !canceled {
+			if !canceled.Load() {
 				c <- true
 			}
 			close(c)
@@ -69,7 +69,7 @@ func FetchAggregateEventHandler(w http.ResponseWriter, r *http.Request) {
 		case <-time.After(time.Duration(dataInput.WaitTimeMillisIfEmpty) * time.Millisecond):
 		}
 
-		canceled = true
+		canceled.Store(true)
 		events, err = esam.FetchAggregateEvent(dataInput.AggregateName, dataInput.AfterID, dataInput.Limit)
 		if err != nil {
 			response.ErrorJSON(w, err, http.StatusInternalServerError)
