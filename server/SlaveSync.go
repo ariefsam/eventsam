@@ -24,7 +24,7 @@ func SlaveSync(db *gorm.DB) {
 			time.Sleep(5 * time.Second)
 			continue
 		}
-		events, err := clientService.FetchAllEvent(int(afterID), 100)
+		events, err := clientService.FetchAllEvent(afterID, 100)
 		if err != nil {
 			log.Println(err)
 			time.Sleep(5 * time.Second)

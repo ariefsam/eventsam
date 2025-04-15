@@ -126,7 +126,7 @@ func (es *Eventsam) Retrieve(aggregateID string, aggregateName string, sinceVers
 	return
 }
 
-func (es *Eventsam) FetchAllEvent(afterID, limit int) (events []eventsam.EventEntity, err error) {
+func (es *Eventsam) FetchAllEvent(afterID uint, limit int) (events []eventsam.EventEntity, err error) {
 	filter := map[string]any{
 		"after_id":                  afterID,
 		"limit":                     limit,
@@ -161,7 +161,7 @@ func (es *Eventsam) FetchAllEvent(afterID, limit int) (events []eventsam.EventEn
 	return
 }
 
-func (es *Eventsam) FetchAggregateEvent(aggregateName string, afterID, limit int) (events []eventsam.EventEntity, err error) {
+func (es *Eventsam) FetchAggregateEvent(aggregateName string, afterID uint, limit int) (events []eventsam.EventEntity, err error) {
 	filter := map[string]any{
 		"aggregate_name":            aggregateName,
 		"after_id":                  afterID,
